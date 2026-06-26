@@ -109,8 +109,8 @@ const HomePage = ({ setGlobalBg, navigate, isActive }: { setGlobalBg: (c: string
       aspectRatio: '0.6 / 1',
       left: '50%',
       bottom: '0',
-      height: isMobile ? '60%' : '92%',
-      transformOrigin: 'bottom center',
+      height: '100%',
+      transformOrigin: 'center center',
       transition: `transform ${TRANSITION_STYLE}, filter ${TRANSITION_STYLE}, opacity ${TRANSITION_STYLE}`,
       willChange: 'transform, filter, opacity',
     };
@@ -118,7 +118,7 @@ const HomePage = ({ setGlobalBg, navigate, isActive }: { setGlobalBg: (c: string
     if (isCenter) {
       return {
         ...baseStyles,
-        transform: `translate3d(-50%, ${isMobile ? '-22vh' : '0'}, 0) scale(${isMobile ? 1.25 : 1.68})`,
+        transform: `translate3d(-50%, ${isMobile ? '2vh' : '-4vh'}, 0) scale(${isMobile ? 0.75 : 1.5456})`,
         filter: 'blur(0px)',
         opacity: 1,
         zIndex: 20,
@@ -127,7 +127,7 @@ const HomePage = ({ setGlobalBg, navigate, isActive }: { setGlobalBg: (c: string
     if (isLeft) {
       return {
         ...baseStyles,
-        transform: `translate3d(calc(-50% - ${isMobile ? '30vw' : '20vw'}), ${isMobile ? '-32vh' : '-12vh'}, 0) scale(${isMobile ? 0.2667 : 0.3043})`,
+        transform: `translate3d(calc(-50% - ${isMobile ? '30vw' : '20vw'}), ${isMobile ? '-10vh' : '-24vh'}, 0) scale(${isMobile ? 0.16 : 0.28})`,
         filter: 'blur(2px)',
         opacity: 0.85,
         zIndex: 10,
@@ -136,7 +136,7 @@ const HomePage = ({ setGlobalBg, navigate, isActive }: { setGlobalBg: (c: string
     if (isRight) {
       return {
         ...baseStyles,
-        transform: `translate3d(calc(-50% + ${isMobile ? '30vw' : '20vw'}), ${isMobile ? '-32vh' : '-12vh'}, 0) scale(${isMobile ? 0.2667 : 0.3043})`,
+        transform: `translate3d(calc(-50% + ${isMobile ? '30vw' : '20vw'}), ${isMobile ? '-10vh' : '-24vh'}, 0) scale(${isMobile ? 0.16 : 0.28})`,
         filter: 'blur(2px)',
         opacity: 0.85,
         zIndex: 10,
@@ -144,7 +144,7 @@ const HomePage = ({ setGlobalBg, navigate, isActive }: { setGlobalBg: (c: string
     }
     return {
       ...baseStyles,
-      transform: `translate3d(-50%, ${isMobile ? '-32vh' : '-12vh'}, 0) scale(${isMobile ? 0.2167 : 0.2391})`,
+      transform: `translate3d(-50%, ${isMobile ? '-11.5vh' : '-27vh'}, 0) scale(${isMobile ? 0.13 : 0.22})`,
       filter: 'blur(4px)',
       opacity: 0,
       zIndex: 5,
