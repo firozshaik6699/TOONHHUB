@@ -146,7 +146,7 @@ const HomePage = ({ setGlobalBg, navigate, isActive }: { setGlobalBg: (c: string
       ...baseStyles,
       transform: `translate3d(-50%, ${isMobile ? '-11.5vh' : '-27vh'}, 0) scale(${isMobile ? 0.13 : 0.22})`,
       filter: 'blur(4px)',
-      opacity: 0,
+      opacity: 1,
       zIndex: 5,
     };
   };
