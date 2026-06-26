@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ArrowLeft, ArrowRight, Sparkles, Box, PaintBucket, Palette, CheckCircle2, ChevronRight, Layers } from 'lucide-react';
 import Lenis from 'lenis';
 
+// Vercel deployment trigger - force fresh cache refresh
 // --- SHARED DATA ---
 const TOONS = [
   { id: 1, name: 'Blush Buddy', price: 49, src: '/images/toon1.webp', bg: '#F4845F', panel: '#F79B7F', tag: 'Dreamy', rarity: 'Common', desc: 'A soft-hearted companion with a punch of color.' },
@@ -403,6 +404,7 @@ export default function App() {
 
   // Preload Images & Fonts
   useEffect(() => {
+    console.log('Toonhub initial loader v1.0.1');
     if (!document.getElementById('anton-inter-fonts')) {
       const link = document.createElement('link');
       link.id = 'anton-inter-fonts';
