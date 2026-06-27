@@ -104,52 +104,64 @@ const HomePage = ({ setGlobalBg, navigate, isActive }: { setGlobalBg: (c: string
     const isCenter = index === activeIndex;
     const isLeft = index === (activeIndex + 3) % 4;
     const isRight = index === (activeIndex + 1) % 4;
+    const isBack = index === (activeIndex + 2) % 4;
 
     const baseStyles: React.CSSProperties = {
       position: 'absolute',
       aspectRatio: '0.6 / 1',
-      left: '50%',
-      bottom: '0',
-      height: '100%',
-      transformOrigin: 'center center',
-      transition: `transform ${TRANSITION_STYLE}, filter ${TRANSITION_STYLE}, opacity ${TRANSITION_STYLE}`,
-      willChange: 'transform, filter, opacity',
+      transition: `transform ${TRANSITION_STYLE}, filter ${TRANSITION_STYLE}, opacity ${TRANSITION_STYLE}, left ${TRANSITION_STYLE}, height ${TRANSITION_STYLE}, bottom ${TRANSITION_STYLE}`,
+      willChange: 'transform, filter, opacity, left, bottom, height',
     };
 
     if (isCenter) {
       return {
         ...baseStyles,
-        transform: `translate3d(-50%, ${isMobile ? '2vh' : '-4vh'}, 0) scale(${isMobile ? 0.75 : 1.5456})`,
+        transform: `translateX(-50%) scale(${isMobile ? 1.25 : 1.68})`,
         filter: 'blur(0px)',
         opacity: 1,
         zIndex: 20,
+        left: '50%',
+        height: isMobile ? '60%' : '92%',
+        bottom: isMobile ? '22%' : '0',
       };
     }
     if (isLeft) {
       return {
         ...baseStyles,
-        transform: `translate3d(calc(-50% - ${isMobile ? '30vw' : '20vw'}), ${isMobile ? '-10vh' : '-24vh'}, 0) scale(${isMobile ? 0.16 : 0.28})`,
+        transform: 'translateX(-50%) scale(1)',
         filter: 'blur(2px)',
         opacity: 0.85,
         zIndex: 10,
+        left: isMobile ? '20%' : '30%',
+        height: isMobile ? '16%' : '28%',
+        bottom: isMobile ? '32%' : '12%',
       };
     }
     if (isRight) {
       return {
         ...baseStyles,
-        transform: `translate3d(calc(-50% + ${isMobile ? '30vw' : '20vw'}), ${isMobile ? '-10vh' : '-24vh'}, 0) scale(${isMobile ? 0.16 : 0.28})`,
+        transform: 'translateX(-50%) scale(1)',
         filter: 'blur(2px)',
         opacity: 0.85,
         zIndex: 10,
+        left: isMobile ? '80%' : '70%',
+        height: isMobile ? '16%' : '28%',
+        bottom: isMobile ? '32%' : '12%',
       };
     }
-    return {
-      ...baseStyles,
-      transform: `translate3d(-50%, ${isMobile ? '-11.5vh' : '-27vh'}, 0) scale(${isMobile ? 0.13 : 0.22})`,
-      filter: 'blur(4px)',
-      opacity: 1,
-      zIndex: 5,
-    };
+    if (isBack) {
+      return {
+        ...baseStyles,
+        transform: 'translateX(-50%) scale(1)',
+        filter: 'blur(4px)',
+        opacity: 1,
+        zIndex: 5,
+        left: '50%',
+        height: isMobile ? '13%' : '22%',
+        bottom: isMobile ? '32%' : '12%',
+      };
+    }
+    return baseStyles;
   };
 
   return (
