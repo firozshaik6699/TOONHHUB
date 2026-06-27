@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ArrowLeft, ArrowRight, Sparkles, Box, PaintBucket, Palette, CheckCircle2, ChevronRight, Layers } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Sparkles, Box, PaintBucket, Palette, CheckCircle2, ChevronRight, Layers, ShoppingBag, X, Plus, Minus, Trash2 } from 'lucide-react';
 import Lenis from 'lenis';
 
 // Vercel deployment trigger - force fresh cache refresh
@@ -10,6 +10,9 @@ const TOONS = [
   { id: 3, name: 'Candy Muse', price: 69, src: '/images/toon3.webp', bg: '#E882B4', panel: '#ED9DC4', tag: 'Limited', rarity: 'Ultra Rare', desc: 'The sweet icon of the collection. Highly sought after.' },
   { id: 4, name: 'Sky Rookie', price: 49, src: '/images/toon4.webp', bg: '#6EB5FF', panel: '#8DC4FF', tag: 'Heroes', rarity: 'Common', desc: 'Ready to take flight and conquer your display shelf.' },
 ];
+
+export type Toon = typeof TOONS[0];
+export interface CartItem extends Toon { quantity: number; }
 
 const GRAIN_SVG = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E`;
 const TRANSITION_STYLE = '650ms cubic-bezier(0.4, 0, 0.2, 1)';
@@ -47,7 +50,7 @@ const GhostText = ({ text, opacity = 1, zIndex = 2 }: { text: string, opacity?: 
   </div>
 );
 
-const TopNav = ({ currentPage, navigate }: { currentPage: string, navigate: (p: 'home' | 'collection' | 'studio') => void }) => (
+const TopNav = ({ currentPage, navigate, cartCount, onOpenShelf }: { currentPage: string, navigate: (p: 'home' | 'collection' | 'studio') => void, cartCount: number, onOpenShelf: () => void }) => (
   <nav className="fixed top-0 inset-x-0 z-[100] flex justify-between items-center p-6 sm:p-8">
     <div
       onClick={() => navigate('home')}
@@ -69,8 +72,119 @@ const TopNav = ({ currentPage, navigate }: { currentPage: string, navigate: (p: 
         </button>
       ))}
     </div>
+    <div className="flex items-center">
+      <button 
+        onClick={onOpenShelf}
+        className="relative group p-3 bg-black/20 hover:bg-white/20 backdrop-blur-md rounded-full border border-white/10 transition-colors"
+      >
+        <ShoppingBag size={20} className="text-white" />
+        {cartCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-white text-black text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-lg">
+            {cartCount}
+          </span>
+        )}
+      </button>
+    </div>
   </nav>
 );
+
+const Toast = ({ message, bgColor, isVisible }: { message: string, bgColor: string, isVisible: boolean }) => (
+  <div 
+    className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[110] transition-all duration-500 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0 pointer-events-none'}`}
+  >
+    <div 
+      className="px-6 py-4 rounded-full shadow-2xl flex items-center gap-3 backdrop-blur-md text-white font-semibold tracking-wide text-sm border border-white/20"
+      style={{ backgroundColor: bgColor }}
+    >
+      <CheckCircle2 size={18} className="text-white" />
+      {message}
+    </div>
+  </div>
+);
+
+const ShelfDrawer = ({ 
+  isOpen, 
+  onClose, 
+  items, 
+  onRemove, 
+  onUpdateQuantity 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  items: CartItem[];
+  onRemove: (id: number) => void;
+  onUpdateQuantity: (id: number, delta: number) => void;
+}) => {
+  const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+
+  return (
+    <>
+      <div 
+        className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[120] transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        onClick={onClose}
+      />
+      <div 
+        className={`fixed top-0 right-0 h-full w-full sm:w-[450px] bg-black/40 backdrop-blur-2xl border-l border-white/20 z-[130] p-6 sm:p-8 flex flex-col transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+      >
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="font-anton text-4xl text-white uppercase tracking-tight">Your Shelf</h2>
+          <button onClick={onClose} className="p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors">
+            <X size={24} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto pr-2 space-y-4 scrollbar-hide">
+          {items.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-white/50 space-y-4">
+              <Box size={48} className="opacity-50" />
+              <p className="font-medium text-lg">Your shelf is looking empty.</p>
+            </div>
+          ) : (
+            items.map((item) => (
+              <div key={item.id} className="bg-white/10 border border-white/10 rounded-3xl p-4 flex gap-4 items-center group transition-all hover:bg-white/15">
+                <div className="w-20 h-24 rounded-2xl flex items-center justify-center p-2" style={{ backgroundColor: item.panel }}>
+                  <img src={item.src} alt={item.name} className="w-full h-full object-contain drop-shadow-md group-hover:scale-110 transition-transform" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-anton text-xl text-white uppercase tracking-tight">{item.name}</h4>
+                  <p className="text-white/60 text-sm font-semibold">${item.price}</p>
+                  
+                  <div className="flex items-center gap-3 mt-3">
+                    <div className="flex items-center bg-black/30 rounded-full">
+                      <button onClick={() => onUpdateQuantity(item.id, -1)} className="p-2 text-white/70 hover:text-white transition-colors">
+                        <Minus size={14} />
+                      </button>
+                      <span className="text-white text-sm font-bold w-4 text-center">{item.quantity}</span>
+                      <button onClick={() => onUpdateQuantity(item.id, 1)} className="p-2 text-white/70 hover:text-white transition-colors">
+                        <Plus size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <button onClick={() => onRemove(item.id)} className="p-3 text-white/40 hover:text-red-400 hover:bg-red-400/10 rounded-full transition-colors self-start">
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="mt-8 pt-6 border-t border-white/20">
+          <div className="flex justify-between items-center mb-6 text-white">
+            <span className="font-medium text-lg">Subtotal</span>
+            <span className="font-anton text-3xl">${subtotal}</span>
+          </div>
+          <button 
+            className="w-full py-4 rounded-full font-bold uppercase tracking-widest text-lg transition-colors bg-white text-black hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={items.length === 0}
+          >
+            Checkout
+          </button>
+        </div>
+      </div>
+    </>
+  );
+};
 
 // --- PAGES ---
 
@@ -202,7 +316,7 @@ const HomePage = ({ setGlobalBg, navigate, isActive }: { setGlobalBg: (c: string
 };
 
 // 2. COLLECTION PAGE
-const CollectionPage = ({ setGlobalBg, isActive }: { setGlobalBg: (c: string) => void, isActive: boolean }) => {
+const CollectionPage = ({ setGlobalBg, isActive, addToShelf }: { setGlobalBg: (c: string) => void, isActive: boolean, addToShelf: (t: Toon) => void }) => {
   const [filter, setFilter] = useState('All');
   const filters = ['All', 'Heroes', 'Dreamy', 'Limited'];
   
@@ -255,8 +369,8 @@ const CollectionPage = ({ setGlobalBg, isActive }: { setGlobalBg: (c: string) =>
           </div>
           <h2 className="font-anton text-4xl sm:text-6xl uppercase tracking-tight leading-none mb-4">{TOONS[2].name}</h2>
           <p className="text-white/90 text-lg mb-8 max-w-md">{TOONS[2].desc} Get it before it's gone forever.</p>
-          <button className="bg-white text-black px-8 py-4 rounded-full font-bold uppercase tracking-wider hover:bg-black hover:text-white transition-colors flex items-center gap-3">
-            View Drop <ChevronRight size={18} />
+          <button onClick={() => addToShelf(TOONS[2])} className="bg-white text-black px-8 py-4 rounded-full font-bold uppercase tracking-wider hover:bg-black hover:text-white transition-colors flex items-center gap-3">
+            Add to Shelf <ChevronRight size={18} />
           </button>
         </div>
       </div>
@@ -283,7 +397,7 @@ const CollectionPage = ({ setGlobalBg, isActive }: { setGlobalBg: (c: string) =>
             </div>
             
             <div className="mt-auto pt-6 flex gap-3">
-              <button className="flex-1 bg-white/20 hover:bg-white text-white hover:text-black font-bold py-3 rounded-full transition-colors flex justify-center items-center gap-2">
+              <button onClick={() => addToShelf(toon)} className="flex-1 bg-white/20 hover:bg-white text-white hover:text-black font-bold py-3 rounded-full transition-colors flex justify-center items-center gap-2">
                 <Box size={18} /> Add to Shelf
               </button>
             </div>
@@ -295,7 +409,7 @@ const CollectionPage = ({ setGlobalBg, isActive }: { setGlobalBg: (c: string) =>
 };
 
 // 3. STUDIO PAGE
-const StudioPage = ({ setGlobalBg, navigate, isActive }: { setGlobalBg: (c: string) => void, navigate: (p: 'home' | 'collection' | 'studio') => void, isActive: boolean }) => {
+const StudioPage = ({ setGlobalBg, navigate, isActive, addToShelf }: { setGlobalBg: (c: string) => void, navigate: (p: 'home' | 'collection' | 'studio') => void, isActive: boolean, addToShelf: (t: Toon) => void }) => {
   const [customIdx, setCustomIdx] = useState(0);
   const [size, setSize] = useState('Classic');
   const activeToon = TOONS[customIdx];
@@ -386,8 +500,8 @@ const StudioPage = ({ setGlobalBg, navigate, isActive }: { setGlobalBg: (c: stri
 
           <div className="pt-6 border-t border-white/20 flex items-center gap-4">
             <span className="font-anton text-4xl text-white">${activeToon.price}</span>
-            <button className="flex-1 bg-black text-white hover:bg-white hover:text-black py-4 rounded-full font-bold uppercase tracking-wider transition-colors flex justify-center items-center gap-2">
-               <CheckCircle2 size={20} /> Build Yours
+            <button onClick={() => addToShelf(activeToon)} className="flex-1 bg-black text-white hover:bg-white hover:text-black py-4 rounded-full font-bold uppercase tracking-wider transition-colors flex justify-center items-center gap-2">
+               <Box size={20} /> Add to Shelf
             </button>
           </div>
         </div>
@@ -413,6 +527,45 @@ export default function App() {
   const [activeSection, setActiveSection] = useState<'home' | 'collection' | 'studio'>('home');
   const [globalBg, setGlobalBg] = useState(TOONS[0].bg);
   const lenisRef = useRef<Lenis | null>(null);
+
+  // Shelf State
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isShelfOpen, setIsShelfOpen] = useState(false);
+  const [toast, setToast] = useState<{ message: string, color: string, visible: boolean }>({ message: '', color: '', visible: false });
+
+  const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+
+  const showToast = (message: string, color: string) => {
+    setToast({ message, color, visible: true });
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, visible: false }));
+    }, 3000);
+  };
+
+  const addToShelf = (toon: Toon) => {
+    setCartItems(prev => {
+      const existing = prev.find(item => item.id === toon.id);
+      if (existing) {
+        return prev.map(item => item.id === toon.id ? { ...item, quantity: item.quantity + 1 } : item);
+      }
+      return [...prev, { ...toon, quantity: 1 }];
+    });
+    showToast(`Added ${toon.name} to shelf!`, toon.panel);
+  };
+
+  const removeFromShelf = (id: number) => {
+    setCartItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  const updateQuantity = (id: number, delta: number) => {
+    setCartItems(prev => prev.map(item => {
+      if (item.id === id) {
+        const newQ = item.quantity + delta;
+        return { ...item, quantity: newQ > 0 ? newQ : 1 };
+      }
+      return item;
+    }));
+  };
 
   // Preload Images & Fonts
   useEffect(() => {
@@ -507,7 +660,7 @@ export default function App() {
     >
       <GrainOverlay />
       
-      <TopNav currentPage={activeSection} navigate={navigate} />
+      <TopNav currentPage={activeSection} navigate={navigate} cartCount={totalItems} onOpenShelf={() => setIsShelfOpen(true)} />
 
       {/* Page Content Wrapper (all pages are stacked and active) */}
       <main className="relative z-10 w-full">
@@ -515,12 +668,21 @@ export default function App() {
           <HomePage setGlobalBg={setGlobalBg} navigate={navigate} isActive={activeSection === 'home'} />
         </section>
         <section id="collection" className="w-full">
-          <CollectionPage setGlobalBg={setGlobalBg} isActive={activeSection === 'collection'} />
+          <CollectionPage setGlobalBg={setGlobalBg} isActive={activeSection === 'collection'} addToShelf={addToShelf} />
         </section>
         <section id="studio" className="w-full">
-          <StudioPage setGlobalBg={setGlobalBg} navigate={navigate} isActive={activeSection === 'studio'} />
+          <StudioPage setGlobalBg={setGlobalBg} navigate={navigate} isActive={activeSection === 'studio'} addToShelf={addToShelf} />
         </section>
       </main>
+
+      <ShelfDrawer 
+        isOpen={isShelfOpen} 
+        onClose={() => setIsShelfOpen(false)} 
+        items={cartItems} 
+        onRemove={removeFromShelf} 
+        onUpdateQuantity={updateQuantity} 
+      />
+      <Toast message={toast.message} bgColor={toast.color} isVisible={toast.visible} />
     </div>
   );
 }
